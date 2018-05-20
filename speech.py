@@ -31,10 +31,9 @@ call your life. You're fucking dead, kid. I can be anywhere,
  will drown in it. You're fucking dead, kiddo.
  """
 
-def getSpeech(recognizer, mike):
-    with mike as source:
-        recognizer.adjust_for_ambient_noise(source)
-        audio = recognizer.listen(source)
+def get_speech(r, m):
+    with m as source:
+        audio = r.listen(source)
 
     response = {
         "transcribe": None,
@@ -42,35 +41,39 @@ def getSpeech(recognizer, mike):
     }
 
     try:
-        response["transcribe"] = recognizer.recognize_google(audio)
+        print("Heard ya. Now trying to get what you said") 
+        response["transcribe"] = r.recognize_google(audio)
     except sr.RequestError:
         response["error"] = "API error"
     except sr.UnknownValueError:
-        response["error"] = "Unable to recognize speech"\
+        response["error"] = "Unable to recognize speech"
 
     return response
 
 def say(stuff):
+    print("Thinking about what to say")
+    subprocess.call(["mpg123", "-q", "500-milliseconds-of-silence.mp3"])
     tts = gTTS(stuff)
     tts.save('temp.mp3')
-    subprocess.Popen(["mpg123", "-q", "temp.mp3"])
+    print("Now I am talking...")
+    subprocess.call(["mpg123", "-q", "temp.mp3"])
 
 def start():
-    recognizer = sr.Recognizer()
-    microphone = sr.Microphone()
-    print("Readying")
-    time.sleep(3)
+    print("Readying...")
+    r = sr.Recognizer()
+    m = sr.Microphone()
+    with m as source: 
+        r.adjust_for_ambient_noise(source)
     while True:
-        print("Say something...")
-        speech = getSpeech(recognizer, microphone)
+        m = sr.Microphone()
+        print("You may say something...")
+        speech = get_speech(r, m)
         if speech["error"]:
             print(speech["error"])
         else:
             words = speech["transcribe"]
-            print(words)
-            say(NAVY_SEAL)
-            
+            print("Heard: {}".format(words))
+            say("You said " + words) 
 
 if __name__ == "__main__":
-    say(NAVY_SEAL)
     start()

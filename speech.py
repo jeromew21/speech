@@ -1,6 +1,7 @@
 import speech_recognition as sr
 import time
 import subprocess
+import vlc
 from gtts import gTTS
 
 NAVY_SEAL = """
@@ -52,11 +53,17 @@ def get_speech(r, m):
 
 def say(stuff):
     print("Thinking about what to say")
-    subprocess.call(["mpg123", "-q", "500-milliseconds-of-silence.mp3"])
+    #subprocess.call(["mpg123", "-q", "500-milliseconds-of-silence.mp3"])
     tts = gTTS(stuff)
     tts.save('temp.mp3')
     print("Now I am talking...")
-    subprocess.call(["mpg123", "-q", "temp.mp3"])
+    p = vlc.MediaPlayer('temp.mp3')
+    p.play()
+    while p.get_state() != vlc.State.Ended:
+        pass
+    time.sleep(3)
+    #subprocess.call(["mpg123", "-q", "temp.mp3"])
+    #time.sleep(3)
 
 def start():
     print("Readying...")
@@ -65,7 +72,6 @@ def start():
     with m as source: 
         r.adjust_for_ambient_noise(source)
     while True:
-        m = sr.Microphone()
         print("You may say something...")
         speech = get_speech(r, m)
         if speech["error"]:
@@ -73,7 +79,8 @@ def start():
         else:
             words = speech["transcribe"]
             print("Heard: {}".format(words))
-            say("You said " + words) 
+            #time.sleep(3)
+            say("You said " + words)
 
 if __name__ == "__main__":
     start()

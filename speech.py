@@ -66,12 +66,12 @@ def say(stuff):
     #time.sleep(3)
 
 def start():
-    print("Readying...")
-    r = sr.Recognizer()
-    m = sr.Microphone()
-    with m as source: 
-        r.adjust_for_ambient_noise(source)
     while True:
+        print("Readying...")
+        r = sr.Recognizer()
+        m = sr.Microphone()
+        with m as source: 
+            r.adjust_for_ambient_noise(source)
         print("You may say something...")
         speech = get_speech(r, m)
         if speech["error"]:

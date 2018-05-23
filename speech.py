@@ -33,10 +33,8 @@ def say(stuff):
     tts = gTTS(stuff)
     tts.save('temp.mp3')
     print("Now I am talking...")
-    p = vlc.MediaPlayer('temp.mp3')
-    p.play()
-    while p.get_state() != vlc.State.Ended:
-        pass
+    print(stuff)
+    responder.play_sound("temp.mp3")
     time.sleep(3)
     #subprocess.call(["mpg123", "-q", "temp.mp3"])
 

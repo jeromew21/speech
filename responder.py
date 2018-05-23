@@ -1,5 +1,12 @@
 import wikipedia
 import nltk
+import urllib
+import urllib.parse
+import urllib.request
+import os
+import vlc
+
+from bs4 import BeautifulSoup
 
 NAVY_SEAL = """
 What the fuck did you just fucking say about me, you little bitch? 
@@ -37,15 +44,68 @@ pastas = {
    ("seal", "navy"): NAVY_SEAL
 }
 
+SEARCH = ("search", "info", "information", "look", "research", "what", "who", "where")
+PLAY = ("play",)
+
+KEYWORDS = SEARCH + PLAY
+
+def classify(tags):
+    result = {
+        "query": "none",
+        "nouns": [],
+        "query_phrase": ""
+    }
+    for word, part in reversed(tags):
+        if word in PLAY:
+            result["query"] = word
+        if word in SEARCH:
+            result["query"] = word
+    if result["query"] not in PLAY:
+        for word, part in tags:
+            if part in ("NN", "NNS") and word not in KEYWORDS:
+                result["nouns"].append(word)
+        result["query_phrase"] = " ".join(result["nouns"])
+    else:
+        query = []
+        for word, part in tags:
+            if word != result["query"]:
+                query.append(word)
+        result["query_phrase"] = " ".join(query)
+    return result
+
+def play_sound(filepath):
+    p = vlc.MediaPlayer(filepath)
+    p.play()
+    while p.get_state() != vlc.State.Ended:
+        pass
+
+def play_song(name):
+    #Look in cache, if it's in it, play it
+    #Search youtube
+    #Download song
+    #update cache
+    #play song
+    FOLDER = "songs"
+    filename = os.path.join(FOLDER, name) + ".mp3"
+    print("Playing {}".format(name))
+    if os.path.isfile(filename):
+        play_sound(filename)
+    else:
+        url = "https://www.youtube.com/results?search_query=" + urllib.parse.quote(name)
+        html = urllib.request.urlopen(url)
+        soup = BeautifulSoup(html, "lxml")
+        links = []
+        for vid in soup.findAll(attrs={'class':'yt-uix-tile-link'}):
+            if not vid['href'].startswith("https://googleads.g.doubleclick.net/"):
+                links.append('https://www.youtube.com' + vid['href'])
+        command = "youtube-dl --extract-audio --audio-format mp3 -o '{0}.%(ext)s' {1}".format(os.path.join(FOLDER, name), links[0])
+        print(command)
+        os.system(command)
+        print("Finished DL")
+        play_sound(filename)
+
 def get_tags(words):
     return nltk.pos_tag(nltk.word_tokenize(words))
-
-def get_nouns(tags):
-    res = []
-    for word, part in tags:
-        if part in ("NN",):
-            res.append(word)
-    return res
 
 def clean_text(text):
     return text.replace("\n", " ")
@@ -56,11 +116,15 @@ def response(words):
         if key[0] in words and key[1] in words:
             return pastas[key]
     tokens = clean_text(words).split(" ")
-    if len(tokens) == 1:
-        return clean_text(wikipedia.summary(tokens[0]))
-    if len(tokens) >= 3 and (tokens[0], tokens[1]) == ("call", "me"):
+        
+    if len(tokens) >= 3 and (tokens[0], tokens[1]) in (("call", "me"), ("i", "am")):
         info["name"] = tokens[2]
         return "yes {}".format(tokens[2])
     tags = get_tags(words)
-    print(get_nouns(tags))
+    data = classify(tags)
+    print(data)
+    if data["query"] in PLAY:
+        play_song(data["query_phrase"])
+    elif data["query"] in SEARCH:
+        return clean_text(wikipedia.summary(data["query_phrase"]))
     return "you said {}".format(words)

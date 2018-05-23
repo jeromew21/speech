@@ -79,6 +79,7 @@ def play_sound(filepath):
     while p.get_state() != vlc.State.Ended:
         pass
 
+song_cache = {}
 def play_song(name):
     #Look in cache, if it's in it, play it
     #Search youtube
@@ -86,10 +87,11 @@ def play_song(name):
     #update cache
     #play song
     FOLDER = "songs"
+    YOUTUBE = 'https://www.youtube.com'
     filename = os.path.join(FOLDER, name) + ".mp3"
     print("Playing {}".format(name))
-    if os.path.isfile(filename):
-        play_sound(filename)
+    if name in song_cache:
+        play_sound(song_cache[name])
     else:
         url = "https://www.youtube.com/results?search_query=" + urllib.parse.quote(name)
         html = urllib.request.urlopen(url)
@@ -97,21 +99,26 @@ def play_song(name):
         links = []
         for vid in soup.findAll(attrs={'class':'yt-uix-tile-link'}):
             if not vid['href'].startswith("https://googleads.g.doubleclick.net/"):
-                links.append('https://www.youtube.com' + vid['href'])
-        command = "youtube-dl --extract-audio --audio-format mp3 -o '{0}.%(ext)s' {1}".format(os.path.join(FOLDER, name), links[0])
+                links.append(vid['href'])
+        url = YOUTUBE + links[0]
+        hash = url.split("=")[-1]
+        path = os.path.join(FOLDER, hash)
+        filename = path + ".mp3"
+        command = "youtube-dl --extract-audio --audio-format mp3 -o '{0}.%(ext)s' {1}".format(path, url)
         print(command)
         os.system(command)
         print("Finished DL")
         play_sound(filename)
+        song_cache[name] = filename
 
 def get_tags(words):
     return nltk.pos_tag(nltk.word_tokenize(words))
 
 def clean_text(text):
-    return text.replace("\n", " ")
+    return text.replace("\n", " ").replace("'", "")
 
 def response(words):
-    words = words.lower()
+    words = clean_text(words).lower()
     for key in pastas:
         if key[0] in words and key[1] in words:
             return pastas[key]

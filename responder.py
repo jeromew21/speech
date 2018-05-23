@@ -1,4 +1,5 @@
 import wikipedia
+import nltk
 
 NAVY_SEAL = """
 What the fuck did you just fucking say about me, you little bitch? 
@@ -36,6 +37,16 @@ pastas = {
    ("seal", "navy"): NAVY_SEAL
 }
 
+def get_tags(words):
+    return nltk.pos_tag(nltk.word_tokenize(words))
+
+def get_nouns(tags):
+    res = []
+    for word, part in tags:
+        if part in ("NN",):
+            res.append(word)
+    return res
+
 def clean_text(text):
     return text.replace("\n", " ")
 
@@ -50,4 +61,6 @@ def response(words):
     if len(tokens) >= 3 and (tokens[0], tokens[1]) == ("call", "me"):
         info["name"] = tokens[2]
         return "yes {}".format(tokens[2])
+    tags = get_tags(words)
+    print(get_nouns(tags))
     return "you said {}".format(words)

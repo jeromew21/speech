@@ -5,6 +5,7 @@ import urllib.parse
 import urllib.request
 import os
 import vlc
+import json
 
 from bs4 import BeautifulSoup
 
@@ -80,6 +81,14 @@ def play_sound(filepath):
         pass
 
 song_cache = {}
+JSON_CACHE = "songs/cache.json"
+if os.path.isfile(JSON_CACHE):
+    with open(JSON_CACHE, "r") as f:
+        song_cache = json.load(f)
+else:
+    with open(JSON_CACHE, "w") as f:
+        f.write(json.dumps(song_cache))
+
 def play_song(name):
     #Look in cache, if it's in it, play it
     #Search youtube
@@ -104,12 +113,17 @@ def play_song(name):
         hash = url.split("=")[-1]
         path = os.path.join(FOLDER, hash)
         filename = path + ".mp3"
-        command = "youtube-dl --extract-audio --audio-format mp3 -o '{0}.%(ext)s' {1}".format(path, url)
-        print(command)
-        os.system(command)
-        print("Finished DL")
-        play_sound(filename)
+        if os.path.isfile(filename):
+              play_sound(filename)
+        else:
+            command = "youtube-dl --extract-audio --audio-format mp3 -o '{0}.%(ext)s' {1}".format(path, url)
+            print(command)
+            os.system(command)
+            print("Finished DL")
+            play_sound(filename)
         song_cache[name] = filename
+        with open(JSON_CACHE, "w") as f:
+            f.write(json.dumps(song_cache))
 
 def get_tags(words):
     return nltk.pos_tag(nltk.word_tokenize(words))
@@ -132,6 +146,7 @@ def response(words):
     print(data)
     if data["query"] in PLAY:
         play_song(data["query_phrase"])
+        return ""
     elif data["query"] in SEARCH:
         return clean_text(wikipedia.summary(data["query_phrase"]))
     return "you said {}".format(words)

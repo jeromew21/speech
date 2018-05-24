@@ -108,16 +108,17 @@ def play_song(name):
     FOLDER = "songs"
     YOUTUBE = 'https://www.youtube.com'
     filename = os.path.join(FOLDER, name) + ".mp3"
-    print("Playing {}".format(name))
     if name in song_cache:
+        print("Playing {}".format(name))
         play_sound(song_cache[name])
     else:
+        print("Downloading webpage...")
         url = "https://www.youtube.com/results?search_query=" + urllib.parse.quote(name)
         html = urllib.request.urlopen(url)
         soup = BeautifulSoup(html, "lxml")
         links = []
+        print("Parsing HTML")
         for vid in soup.findAll(attrs={'class':'yt-uix-tile-link'}):
-            print(vid)
             if not vid['href'].startswith("https://googleads.g.doubleclick.net/"):
                 links.append(vid['href'])
         if not links:
@@ -128,19 +129,22 @@ def play_song(name):
         filename = path + ".mp3"
         song_cache[name] = filename
         if os.path.isfile(filename):
-              play_sound(filename)
+            print("Playing {}".format(name))
+            play_sound(filename)
         else:
+            print("Downloading and converting...")
             command = "youtube-dl --extract-audio --audio-format mp3 -o '{0}.%(ext)s' {1}".format(path, url)
             print(command)
             os.system(command)
-            print("Finished DL")
+            print("Finished download and conversion")
+            print("Playing {}".format(name))
             play_sound(filename)
         with open(JSON_CACHE, "w") as f:
             f.write(json.dumps(song_cache))
 
 def get_tags(words):
     return nltk.pos_tag(nltk.word_tokenize(words))
-
+  
 def clean_text(text):
     return text.replace("\n", " ").replace("'", "")
 

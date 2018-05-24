@@ -16,6 +16,7 @@
 * NLTK
 * wikipedia
 * BeautifulSoup
+* duckduckgo (use this [https://github.com/taciturasa/duckduckgo-python3](this) one)
 
 #### Hardware
 

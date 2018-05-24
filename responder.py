@@ -90,7 +90,7 @@ else:
         f.write(json.dumps(song_cache))
 
 def play_song(name):
-    name = name.trim()
+    name = name.strip()
     if not name:
         return "play what"
     FOLDER = "songs"

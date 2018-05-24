@@ -28,18 +28,16 @@ def get_speech(r):
     return response
 
 def say(stuff):
-    stuff = stuff.trim()
+    stuff = stuff.strip()
     if not stuff:
         return
     print("Thinking about what to say")
-    #subprocess.call(["mpg123", "-q", "500-milliseconds-of-silence.mp3"])
     tts = gTTS(stuff)
     tts.save('temp.mp3')
     print("Now I am talking...")
     print(stuff)
     responder.play_sound("temp.mp3")
-    time.sleep(3)
-    #subprocess.call(["mpg123", "-q", "temp.mp3"])
+    time.sleep(1)
 
 def start():
     print("Readying...")

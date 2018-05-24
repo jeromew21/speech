@@ -90,11 +90,9 @@ else:
         f.write(json.dumps(song_cache))
 
 def play_song(name):
-    #Look in cache, if it's in it, play it
-    #Search youtube
-    #Download song
-    #update cache
-    #play song
+    name = name.trim()
+    if not name:
+        return "play what"
     FOLDER = "songs"
     YOUTUBE = 'https://www.youtube.com'
     filename = os.path.join(FOLDER, name) + ".mp3"
@@ -113,6 +111,7 @@ def play_song(name):
         hash = url.split("=")[-1]
         path = os.path.join(FOLDER, hash)
         filename = path + ".mp3"
+        song_cache[name] = filename
         if os.path.isfile(filename):
               play_sound(filename)
         else:
@@ -121,7 +120,6 @@ def play_song(name):
             os.system(command)
             print("Finished DL")
             play_sound(filename)
-        song_cache[name] = filename
         with open(JSON_CACHE, "w") as f:
             f.write(json.dumps(song_cache))
 

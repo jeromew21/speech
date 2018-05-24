@@ -1,4 +1,4 @@
-# Speech: A Text-to-speech toy.
+#Speech: A Text-to-speech toy.
 
 ### Dependencies
 
@@ -16,7 +16,6 @@
 * NLTK
 * wikipedia
 * BeautifulSoup
-* duckduckgo (use [this](https://github.com/taciturasa/duckduckgo-python3]) one)
 
 #### Hardware
 

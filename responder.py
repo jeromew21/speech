@@ -45,10 +45,24 @@ pastas = {
    ("seal", "navy"): NAVY_SEAL
 }
 
-SEARCH = ("search", "info", "information", "look", "research", "what", "who", "where")
+api_id = ""
+with open("api_key.txt") as f:
+    api_id = f.read().replace("\n", "")
+
+API_URL = "http://api.wolframalpha.com/v1/result?appid={}&i=".format(api_id)
+
+def api_query(words):
+    url = API_URL + urllib.parse.quote(words)
+    result = ""
+    try:
+        result = str(urllib.request.urlopen(url).read(), "utf-8")
+    except:
+        result = ""
+    return "i don't know" if not result or result == "No short answer available" else result
+
 PLAY = ("play",)
 
-KEYWORDS = SEARCH + PLAY
+KEYWORDS = PLAY
 
 def classify(tags):
     result = {
@@ -58,8 +72,6 @@ def classify(tags):
     }
     for word, part in reversed(tags):
         if word in PLAY:
-            result["query"] = word
-        if word in SEARCH:
             result["query"] = word
     if result["query"] not in PLAY:
         for word, part in tags:
@@ -105,11 +117,14 @@ def play_song(name):
         soup = BeautifulSoup(html, "lxml")
         links = []
         for vid in soup.findAll(attrs={'class':'yt-uix-tile-link'}):
+            print(vid)
             if not vid['href'].startswith("https://googleads.g.doubleclick.net/"):
                 links.append(vid['href'])
+        if not links:
+            return
         url = YOUTUBE + links[0]
-        hash = url.split("=")[-1]
-        path = os.path.join(FOLDER, hash)
+        hashcode = url.split("=")[-1]
+        path = os.path.join(FOLDER, hashcode)
         filename = path + ".mp3"
         song_cache[name] = filename
         if os.path.isfile(filename):
@@ -141,10 +156,11 @@ def response(words):
         return "yes {}".format(tokens[2])
     tags = get_tags(words)
     data = classify(tags)
-    print(data)
+    
     if data["query"] in PLAY:
         play_song(data["query_phrase"])
         return ""
-    elif data["query"] in SEARCH:
-        return clean_text(wikipedia.summary(data["query_phrase"]))
-    return "you said {}".format(words)
+    return api_query(words)
+    #elif data["query"] in SEARCH:
+        #return clean_text(wikipedia.summary(data["query_phrase"]))
+    #return "you said {}".format(words)

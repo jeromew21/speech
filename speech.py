@@ -10,7 +10,7 @@ def get_response(words):
 
 def get_speech(r):
     with sr.Microphone() as source:
-        audio = r.listen(source, timeout=5.0)
+        audio = r.listen(source)#, timeout=5.0)
 
     response = {
         "transcribe": None,
